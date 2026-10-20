@@ -1,0 +1,196 @@
+:root {
+  --background: #eef2f7;
+  --ink: #1f2a37;
+  --muted: #667085;
+  --card: #ffffff;
+  --line: #d7dee8;
+  --x-color: #2563eb;
+  --o-color: #d97706;
+  --win: #16a34a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background: var(--background);
+  color: var(--ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #93b4f5;
+  outline-offset: 3px;
+}
+
+.game {
+  width: min(470px, 100%);
+  padding: 30px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 18px 45px #1f2a3714;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 27px;
+  letter-spacing: -.6px;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.setup {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.player-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.player-inputs label {
+  grid-column: span 1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: -6px;
+}
+
+.player-inputs input {
+  grid-column: span 1;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+}
+
+.button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: #f3f6fa;
+}
+
+.button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.button-primary {
+  background: var(--x-color);
+  border-color: var(--x-color);
+  color: #fff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.status {
+  min-height: 24px;
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.status.is-win {
+  color: var(--win);
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #f4f7fb;
+  color: var(--ink);
+  font-size: clamp(38px, 11vw, 58px);
+  font-weight: 750;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cell:hover:not(:disabled) {
+  background: #e7edf7;
+}
+
+.cell:disabled {
+  cursor: default;
+}
+
+.cell.mark-x {
+  color: var(--x-color);
+}
+
+.cell.mark-o {
+  color: var(--o-color);
+}
+
+.cell.is-winning {
+  background: #dcf3e3;
+  box-shadow: inset 0 0 0 2px var(--win);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 420px) {
+  .game {
+    padding: 22px;
+  }
+
+  .player-inputs,
+  .controls {
+    grid-template-columns: 1fr;
+  }
+}
