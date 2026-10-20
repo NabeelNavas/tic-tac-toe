@@ -72,24 +72,30 @@ h1 {
   gap: 12px;
 }
 
-.player-inputs label {
-  grid-column: span 1;
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .7px;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: -6px;
 }
 
-.player-inputs input {
-  grid-column: span 1;
+.field input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   color: inherit;
+}
+
+.field input::placeholder {
+  color: #a4adba;
 }
 
 .button {
@@ -149,7 +155,7 @@ h1 {
   padding: 0;
   border: 0;
   border-radius: 12px;
-  background: #f4f7fb;
+  background: #f0f4f9;
   color: var(--ink);
   font-size: clamp(38px, 11vw, 58px);
   font-weight: 750;
@@ -158,7 +164,7 @@ h1 {
 }
 
 .cell:hover:not(:disabled) {
-  background: #e7edf7;
+  background: #e2eaf6;
 }
 
 .cell:disabled {
