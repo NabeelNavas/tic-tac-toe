@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="game">
+    <header class="game-header">
+      <h1>Tic Tac Toe</h1>
+      <p class="subtitle">Three in a row wins. X always goes first.</p>
+    </header>
+
+    <form id="setup-form" class="setup">
+      <div class="player-inputs">
+        <label for="player-one">Player X</label>
+        <input type="text" id="player-one" name="playerOne" placeholder="Player X" maxlength="20" required>
+
+        <label for="player-two">Player O</label>
+        <input type="text" id="player-two" name="playerTwo" placeholder="Player O" maxlength="20" required>
+      </div>
+
+      <button type="submit" class="button button-primary">Start game</button>
+    </form>
+
+    <p id="status" class="status" role="status">Enter both names and start the game.</p>
+
+    <div id="board" class="board" role="grid" aria-label="Tic Tac Toe board"></div>
+
+    <div class="controls">
+      <button type="button" class="button" id="restart-button" disabled>Restart round</button>
+      <button type="button" class="button" id="new-players-button">New players</button>
+    </div>
+  </main>
+</body>
+</html>
