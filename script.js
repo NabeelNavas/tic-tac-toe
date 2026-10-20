@@ -1,38 +1,32 @@
+// ----- Logic layer: no DOM code lives in here -----
+
 // Factory: one player object.
-const Player = (name, marker) => {
-  return { name, marker };
-};
+const Player = (name, marker) => ({ name, marker });
 
-// Factory: the gameboard holds the array and validates moves.
+// The eight winning lines, shared by the board checker.
+const WINNING_LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+  [0, 4, 8], [2, 4, 6]             // diagonals
+];
+
+// Factory: the board holds the array and validates moves.
 const Gameboard = () => {
-  const board = [
-    "", "", "",
-    "", "", "",
-    "", "", ""
-  ];
+  const board = ["", "", "", "", "", "", "", "", ""];
 
+  // Returns true only when the square exists and is still empty.
   const markCell = (index, marker) => {
-    const onBoard = index >= 0 && index < board.length;
+    const onBoard = Number.isInteger(index) && index >= 0 && index < board.length;
     if (!onBoard || board[index] !== "") return false;
-
     board[index] = marker;
     return true;
   };
 
-  const reset = () => {
-    board.fill("");
-  };
+  const reset = () => board.fill("");
 
-  // All eight winning lines, checked against the board array.
-  const winningLines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6]
-  ];
-
-  // Returns the winning line array, or null when there is none yet.
+  // Returns the winning line array, or null when there is none.
   const findWinner = () => {
-    for (const line of winningLines) {
+    for (const line of WINNING_LINES) {
       const [a, b, c] = line;
       if (board[a] !== "" && board[a] === board[b] && board[a] === board[c]) {
         return line;
@@ -43,10 +37,10 @@ const Gameboard = () => {
 
   const isFull = () => board.every((cell) => cell !== "");
 
-  return { board, markCell, reset, findWinner, isFull, winningLines };
+  return { board, markCell, reset, findWinner, isFull };
 };
 
-// Factory: controls turn order and end-of-game state.
+// Factory: turn order and end-of-game state.
 const Game = (playerOne, playerTwo, gameboard) => {
   let activePlayer = playerOne;
   let finished = false;
@@ -57,12 +51,13 @@ const Game = (playerOne, playerTwo, gameboard) => {
     activePlayer = activePlayer === playerOne ? playerTwo : playerOne;
   };
 
-  // One move: tries to mark the board, then checks for a win or a tie.
+  // Play one move and report what happened.
   const playRound = (index) => {
     if (finished) return { accepted: false, reason: "game-over" };
 
-    const placed = gameboard.markCell(index, activePlayer.marker);
-    if (!placed) return { accepted: false, reason: "taken" };
+    if (!gameboard.markCell(index, activePlayer.marker)) {
+      return { accepted: false, reason: "taken" };
+    }
 
     winningLine = gameboard.findWinner();
 
@@ -99,7 +94,8 @@ const Game = (playerOne, playerTwo, gameboard) => {
   };
 };
 
-// Module: all DOM work lives here, so the logic above stays free of it.
+// ----- Display layer: wrapped in a module so it is created once -----
+
 const displayController = (() => {
   const setupForm = document.querySelector("#setup-form");
   const playerOneInput = document.querySelector("#player-one");
@@ -115,7 +111,7 @@ const displayController = (() => {
   let playerTwo = null;
   const cellButtons = [];
 
-  // Build the nine square buttons once.
+  // Build the nine squares immediately, so the board shows on load.
   for (let index = 0; index < 9; index += 1) {
     const cell = document.createElement("button");
     cell.type = "button";
@@ -128,33 +124,36 @@ const displayController = (() => {
     boardElement.append(cell);
   }
 
-  // Read the board array and paint every square from it.
-  const render = () => {
-    if (!gameboard) return;
-
-    gameboard.board.forEach((marker, index) => {
-      const cell = cellButtons[index];
-      cell.textContent = marker;
-      cell.classList.toggle("mark-x", marker === "X");
-      cell.classList.toggle("mark-o", marker === "O");
-      cell.disabled = marker !== "" || game.isFinished();
-      cell.setAttribute("aria-label", `Square ${index + 1}${marker ? `, ${marker}` : ""}`);
-    });
-
-    const line = game.getWinningLine();
+  const clearHighlights = () => {
     cellButtons.forEach((cell) => cell.classList.remove("is-winning"));
-    if (line) {
-      line.forEach((index) => cellButtons[index].classList.add("is-winning"));
-    }
-
-    restartButton.disabled = false;
   };
 
   const resetStatusStyle = () => statusElement.classList.remove("is-win");
 
-  const announceStart = () => {
+  // Paint every square from the board array, and lock them when the game is done.
+  const render = () => {
+    const marks = gameboard ? gameboard.board : ["", "", "", "", "", "", "", "", ""];
+    const finished = game ? game.isFinished() : true;
+
+    marks.forEach((marker, index) => {
+      const cell = cellButtons[index];
+      cell.textContent = marker;
+      cell.classList.toggle("mark-x", marker === "X");
+      cell.classList.toggle("mark-o", marker === "O");
+      cell.disabled = marker !== "" || finished;
+      cell.setAttribute("aria-label", `Square ${index + 1}${marker ? `, ${marker}` : ""}`);
+    });
+
+    clearHighlights();
+
+    if (game && game.getWinningLine()) {
+      game.getWinningLine().forEach((index) => cellButtons[index].classList.add("is-winning"));
+    }
+  };
+
+  const announceTurn = () => {
     resetStatusStyle();
-    statusElement.textContent = `${playerOne.name} (X) goes first.`;
+    statusElement.textContent = `${playerOne.name} (X), your turn.`;
   };
 
   const startGame = (firstName, secondName) => {
@@ -164,18 +163,20 @@ const displayController = (() => {
     game = Game(playerOne, playerTwo, gameboard);
 
     render();
-    announceStart();
+    restartButton.disabled = false;
+    announceTurn();
   };
 
-  const handleCellClick = (event) => {
+  boardElement.addEventListener("click", (event) => {
     const cell = event.target.closest(".cell");
     if (!cell || !game) return;
 
     const outcome = game.playRound(Number(cell.dataset.index));
 
     if (!outcome.accepted) {
-      statusElement.textContent =
-        outcome.reason === "taken" ? "That square is already taken." : statusElement.textContent;
+      if (outcome.reason === "taken") {
+        statusElement.textContent = "That square is already taken.";
+      }
       return;
     }
 
@@ -189,15 +190,12 @@ const displayController = (() => {
       resetStatusStyle();
       statusElement.textContent = "It's a tie. No squares left.";
     } else {
-      resetStatusStyle();
       statusElement.textContent = `${outcome.player.name} (${outcome.player.marker}), your turn.`;
     }
-  };
-
-  boardElement.addEventListener("click", handleCellClick);
+  });
 
   setupForm.addEventListener("submit", (event) => {
-    // Without this, the browser would try to send the form to a server.
+    // Stops the browser from trying to send the form to a server.
     event.preventDefault();
 
     const firstName = playerOneInput.value.trim() || "Player X";
@@ -209,6 +207,7 @@ const displayController = (() => {
     }
 
     startGame(firstName, secondName);
+    playerTwoInput.blur();
   });
 
   restartButton.addEventListener("click", () => {
@@ -216,24 +215,26 @@ const displayController = (() => {
 
     game.restart();
     render();
-    announceStart();
+    announceTurn();
   });
 
   newPlayersButton.addEventListener("click", () => {
     gameboard = null;
     game = null;
-    cellButtons.forEach((cell) => {
-      cell.textContent = "";
-      cell.className = "cell";
-      cell.disabled = true;
-    });
+    playerOne = null;
+    playerTwo = null;
+    render();
     restartButton.disabled = true;
-    setupForm.hidden = false;
     resetStatusStyle();
     statusElement.textContent = "Enter both names and start the game.";
+    playerOneInput.value = "";
+    playerTwoInput.value = "";
     playerOneInput.focus();
   });
 
-  // Let the module hand a fresh game to the console for testing.
-  return { startGame: (a, b) => startGame(a || "Player X", b || "Player O") };
+  // Start with a clean, empty board visible.
+  render();
+
+  // Handy for driving the game from the console during development.
+  window.startTicTacToe = (a, b) => startGame(a || "Player X", b || "Player O");
 })();
